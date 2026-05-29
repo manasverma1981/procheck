@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROC CHECK — Procurement Document Validator</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2333;
+    --border: #30363d;
+    --border2: #21262d;
+    --olive: #4a6741;
+    --olive-bright: #6aaa5c;
+    --olive-dim: #2d3f2a;
+    --amber: #e3a820;
+    --amber-dim: #3d2e08;
+    --red: #f85149;
+    --red-dim: #3d1a1a;
+    --green: #3fb950;
+    --green-dim: #1a3d1f;
+    --blue: #58a6ff;
+    --blue-dim: #1a2d4a;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #6e7681;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--olive);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-badge {
+    background: var(--olive);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    padding: 4px 8px;
+    border-radius: 2px;
+  }
+
+  .logo-title {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--olive-bright);
+    letter-spacing: 1px;
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 1px;
+  }
+
+  .header-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    text-align: right;
+  }
+
+  /* MAIN LAYOUT */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    background: var(--surface2);
+    padding: 4px;
+    border-radius: 6px;
+    border: 1px solid var(--border2);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
+    color: var(--text2);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.15s, color 0.15s;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tab:hover { background: var(--border2); color: var(--text); }
+
+  .tab.active {
+    background: var(--olive);
+    color: #fff;
+  }
+
+  /* SECTION */
+  .section {
+    display: none;
+  }
+  .section.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  .card-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--olive-dim);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.3px;
+  }
+
+  .card-sub {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+
+  /* LPP SECTION */
+  .lpp-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-primary {
+    background: var(--olive);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--olive-bright); }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--olive); color: var(--olive-bright); }
+
+  .btn-danger {
+    background: var(--red-dim);
+    color: var(--red);
+    border: 1px solid var(--red);
+  }
+  .btn-danger:hover { background: var(--red); color: #fff; }
+
+  .btn-amber {
+    background: var(--amber-dim);
+    color: var(--amber);
+    border: 1px solid var(--amber);
+  }
+  .btn-amber:hover { background: var(--amber); color: #000; }
+
+  /* INPUT */
+  .form-group {
+    margin-bottom: 14px;
+  }
+
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text2);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  input[type="text"], input[type="number"], select, textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 9px 12px;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--olive-bright);
+  }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media(max-width: 600px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* LPP TABLE */
+  .lpp-table-wrap {
+    overflow-x: auto;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  th {
+    background: var(--surface2);
+    color: var(--text2);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border2);
+    color: var(--text);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+
+  .td-mono { font-family: var(--mono); font-size: 11px; }
+
+  .td-del {
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .td-del:hover { color: var(--red); background: var(--red-dim); }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--surface2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--olive-bright);
+    background: var(--olive-dim);
+  }
+
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .upload-icon { font-size: 32px; margin-bottom: 8px; }
+
+  .upload-text {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 4px;
+  }
+
+  .upload-hint {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: var(--mono);
+  }
+
+  /* PREVIEWS */
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .preview-item {
+    position: relative;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    aspect-ratio: 1;
+  }
+
+  .preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .preview-item .preview-del {
+    position: absolute;
+    top: 4px; right: 4px;
+    background: rgba(0,0,0,0.7);
+    color: var(--red);
+    border: none;
+    border-radius: 50%;
+    width: 20px; height: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .preview-label {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.75);
+    color: var(--text2);
+    font-size: 9px;
+    font-family: var(--mono);
+    padding: 3px 5px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* DOC TYPE SELECTOR */
+  .doc-type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .doc-type-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    color: var(--text2);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .doc-type-btn:hover {
+    border-color: var(--olive);
+    color: var(--text);
+  }
+
+  .doc-type-btn.selected {
+    border-color: var(--olive-bright);
+    background: var(--olive-dim);
+    color: var(--olive-bright);
+  }
+
+  .doc-type-btn .dt-icon { font-size: 22px; margin-bottom: 6px; }
+  .doc-type-btn .dt-label { display: block; }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: var(--mono);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .badge-pass { background: var(--green-dim); color: var(--green); }
+  .badge-fail { background: var(--red-dim); color: var(--red); }
+  .badge-warn { background: var(--amber-dim); color: var(--amber); }
+  .badge-info { background: var(--blue-dim); color: var(--blue); }
+  .badge-na { background: var(--surface2); color: var(--text3); }
+
+  /* RESULT PANEL */
+  .result-panel {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .result-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .result-score {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 600;
+  }
+
+  .score-pass { color: var(--green); }
+  .score-warn { color: var(--amber); }
+  .score-fail { color: var(--red); }
+
+  .result-checks {
+    padding: 16px 18px;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  .check-item:last-child { border-bottom: none; }
+
+  .check-icon {
+    font-size: 16px;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+
+  .check-body { flex: 1; }
+
+  .check-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .check-detail {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+
+  .check-detail .hl { color: var(--amber); font-family: var(--mono); }
+  .check-detail .ok { color: var(--green); font-family: var(--mono); }
+  .check-detail .er { color: var(--red); font-family: var(--mono); }
+
+  /* PROGRESS */
+  .analyzing-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13,17,23,0.85);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .analyzing-overlay.visible { display: flex; }
+
+  .spinner {
+    width: 50px; height: 50px;
+    border: 3px solid var(--border);
+    border-top-color: var(--olive-bright);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .analyzing-text {
+    font-family: var(--mono);
+    color: var(--olive-bright);
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+
+  .analyzing-steps {
+    font-family: var(--mono);
+    color: var(--text3);
+    font-size: 12px;
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  /* CHAIN STEPPER */
+  .chain-steps {
+    display: flex;
+    gap: 0;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .chain-step {
+    flex: 1;
+    min-width: 110px;
+    position: relative;
+  }
+
+  .chain-step:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    font-size: 16px;
+    z-index: 1;
+  }
+
+  .chain-step-inner {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-right: 16px;
+  }
+
+  .chain-step-inner:hover { border-color: var(--olive); }
+  .chain-step-inner.active { border-color: var(--olive-bright); background: var(--olive-dim); }
+  .chain-step-inner.done { border-color: var(--green); }
+
+  .cs-icon { font-size: 20px; }
+  .cs-label { font-size: 10px; color: var(--text2); margin-top: 4px; font-weight: 600; letter-spacing: 0.5px; }
+
+  /* DIVIDER */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border2);
+    margin: 16px 0;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--olive);
+    border-radius: 6px;
+    padding: 12px 18px;
+    font-size: 13px;
+    color: var(--text);
+    z-index: 300;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s;
+    max-width: 320px;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* SUMMARY BOX */
+  .summary-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stat-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: var(--mono);
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* PRINT */
+  @media print {
+    body { background: #fff; color: #000; }
+    header { display: none; }
+    .tabs { display: none; }
+    .no-print { display: none; }
+    .card { border-color: #ccc; background: #fff; }
+    .result-panel { border-color: #ccc; }
+    .result-header { background: #f5f5f5; }
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text3);
+  }
+
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-text { font-size: 14px; }
+
+  /* MANUAL ENTRY ROW */
+  .manual-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr auto;
+    gap: 8px;
+    align-items: end;
+    margin-bottom: 8px;
+  }
+
+  @media(max-width:600px) {
+    .manual-row { grid-template-columns: 1fr 1fr; }
+    .summary-stats { grid-template-columns: 1fr 1fr; }
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text3);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border2);
+  }
+
+  .info-pill {
+    background: var(--blue-dim);
+    color: var(--blue);
+    border: 1px solid var(--blue);
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  textarea { min-height: 80px; resize: vertical; }
+</style>
+</head>
+<body>
+
+<div class="analyzing-overlay" id="analyzingOverlay">
+  <div class="spinner"></div>
+  <div class="analyzing-text" id="analyzingText">INITIALISING ANALYSIS...</div>
+  <div class="analyzing-steps" id="analyzingSteps"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<header>
+  <div class="logo">
+    <div class="logo-badge">PROC</div>
+    <div>
+      <div class="logo-title">PROC CHECK</div>
+      <div class="logo-sub">Procurement Document Validator · Indian Army / GST</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <div id="lppCount">LPP Items: 0</div>
+    <div id="sessionDate"></div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- TABS -->
+  <div class="tabs no-print" id="tabBar">
+    <button class="tab active" data-tab="lpp">📋 LPP</button>
+    <button class="tab" data-tab="hsn">🏷️ HSN Rates</button>
+    <button class="tab" data-tab="single">🔍 Single Doc</button>
+    <button class="tab" data-tab="chain">🔗 Chain Check</button>
+    <button class="tab" data-tab="results">📊 Results</button>
+  </div>
+
+  <!-- ===== LPP DATABASE ===== -->
+  <div class="section active" id="tab-lpp">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">📋</div>
+        <div>
+          <div class="card-title">Last Purchase Price (LPP) Database</div>
+          <div class="card-sub">Upload Excel file or add items manually. Used for price variance checks.</div>
+        </div>
+      </div>
+
+      <div class="info-pill">
+        ℹ️ Upload your existing LPP Excel (.xlsx / .csv) OR add items manually below. Both methods can be combined.
+      </div>
+
+      <div class="lpp-actions">
+        <label class="btn btn-primary" style="cursor:pointer; position:relative; overflow:hidden;">
+          ⬆ Upload Excel / CSV
+          <input type="file" accept=".xlsx,.csv,.xls" id="lppFileInput" style="position:absolute;opacity:0;inset:0;cursor:pointer;" onchange="handleLppUpload(this)">
+        </label>
+        <button class="btn btn-secondary" onclick="showManualLpp()">✏️ Add Item Manually</button>
+        <button class="btn btn-secondary" onclick="downloadLppTemplate()">⬇ Download Template</button>
+        <button class="btn btn-danger" onclick="clearLpp()" id="clearLppBtn" style="display:none;">🗑 Clear All</button>
+      </div>
+
+      <!-- Manual Add Form -->
+      <div id="manualLppForm" style="display:none;" class="card" style="background:var(--surface2);">
+        <div class="section-label">Add Item Manually</div>
+        <div class="manual-row">
+          <div class="form-group" style="margin:0">
+            <label>Item Description</label>
+            <input type="text" id="mi_desc" placeholder="e.g. Air Filter, TATA 407">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Part No / Code</label>
+            <input type="text" id="mi_part" placeholder="OEM Part No.">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Unit</label>
+            <select id="mi_unit">
+              <option>Each</option><option>Nos</option><option>Set</option>
+              <option>Litre</option><option>Kg</option><option>Box</option>
+              <option>Metre</option><option>Pair</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>LPP (₹ excl. GST)</label>
+            <input type="number" id="mi_lpp" placeholder="0.00">
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button class="btn btn-primary" onclick="addManualLpp()">+ Add</button>
+          </div>
+        </div>
+        <div class="grid-3" style="margin-top:8px;">
+          <div class="form-group" style="margin:0">
+            <label>Category</label>
+            <select id="mi_cat">
+              <option>Vehicle Spares</option>
+              <option>Consumables</option>
+              <option>Stationery</option>
+              <option>Electrical</option>
+              <option>Ration / Provisions</option>
+              <option>Clothing / Accoutrements</option>
+              <option>General Store</option>
+              <option>IT / Electronics</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Vehicle / Make (if applicable)</label>
+            <input type="text" id="mi_vehicle" placeholder="e.g. TATA 407, Stallion">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Last Purchase Date</label>
+            <input type="text" id="mi_date" placeholder="MM/YYYY">
+          </div>
+        </div>
+      </div>
+
+      <!-- LPP Table -->
+      <div id="lppTableSection" style="display:none;">
+        <div class="section-label">Current LPP Database (<span id="lppCountLabel">0</span> items)</div>
+        <div class="lpp-table-wrap">
+          <table id="lppTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Description</th>
+                <th>Part No</th>
+                <th>Category</th>
+                <th>Vehicle/Make</th>
+                <th>Unit</th>
+                <th>LPP (₹)</th>
+                <th>Date</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="lppTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="lppEmpty" class="empty-state">
+        <div class="empty-icon">📦</div>
+        <div class="empty-text">No LPP data loaded. Upload Excel or add items manually.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HSN RATE TABLE ===== -->
+  <div class="section" id="tab-hsn">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">🏷️</div>
+        <div>
+          <div class="card-title">HSN / SAC Rate Table</div>
+          <div class="card-sub">GST rates per GoI notifications. Pre-loaded for Army procurement. Add custom entries as needed.</div>
+        </div>
+      </div>
+      <div class="info-pill">
+        ℹ️ These rates are cross-checked against vendor invoices during analysis. Last updated: <strong>GST Council 55th Meeting, Dec 2024.</strong>
+      </div>
+      <div class="lpp-actions">
+        <button class="btn btn-primary" onclick="showHsnForm()">✏️ Add Custom HSN</button>
+        <button class="btn btn-secondary" onclick="resetHsnToDefaults()">↺ Reset to Defaults</button>
+      </div>
+      <div id="hsnAddForm" style="display:none;" class="card">
+        <div class="section-label">Add Custom HSN Entry</div>
+        <div class="grid-3">
+          <div class="form-group" style="margin:0">
+            <label>HSN / SAC Code</label>
+            <input type="text" id="hi_hsn" placeholder="e.g. 8708">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>GST Rate (%)</label>
+            <select id="hi_rate">
+              <option value="0">0% (Nil)</option>
+              <option value="5">5%</option>
+              <option value="12">12%</option>
+              <option value="18" selected>18%</option>
+              <option value="28">28%</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Category</label>
+            <select id="hi_cat">
+              <option>Vehicle Spares</option><option>Tyres and Tubes</option>
+              <option>POL / Lubricants</option><option>Batteries</option>
+              <option>Electrical</option><option>Stationery</option>
+              <option>Fans and HVAC</option><option>Ration / Food</option>
+              <option>Clothing / Fabric</option><option>IT / Electronics</option>
+              <option>Arms and Ammunition</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:8px;">
+          <label>Item Description</label>
+          <input type="text" id="hi_desc" placeholder="e.g. Parts and accessories for motor vehicles">
+        </div>
+        <div class="form-group">
+          <label>Notes / Conditions</label>
+          <input type="text" id="hi_note" placeholder="e.g. Excludes retreaded tyres">
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" onclick="addHsnEntry()">+ Add Entry</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('hsnAddForm').style.display='none'">Cancel</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+        <input type="text" id="hsnFilter" placeholder="Search HSN code or description..." style="flex:1;min-width:180px;" oninput="renderHsnTable()">
+        <select id="hsnCatFilter" onchange="renderHsnTable()" style="width:180px;">
+          <option value="">All Categories</option>
+          <option>Vehicle Spares</option><option>Tyres and Tubes</option>
+          <option>POL / Lubricants</option><option>Batteries</option>
+          <option>Electrical</option><option>Stationery</option>
+          <option>Fans and HVAC</option><option>Ration / Food</option>
+          <option>Clothing / Fabric</option><option>IT / Electronics</option>
+        </select>
+      </div>
+      <div class="lpp-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>HSN/SAC</th><th>Description</th><th>Category</th>
+              <th>GST Rate</th><th>CGST</th><th>SGST</th><th>IGST</th>
+              <th>Notes</th><th>Source</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="hsnTbody"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--text3);">
+        <span id="hsnCountLabel">0</span> entries · Custom entries marked ✏️
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SINGLE DOC CHECK ===== -->
+  <div class="section" id="tab-single">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">🔍</div>
+        <div>
+          <div class="card-title">Single Document Check</div>
+          <div class="card-sub">Check any one document type independently</div>
+        </div>
+      </div>
+
+      <div class="section-label">Select Document Type</div>
+      <div class="doc-type-grid">
+        <div class="doc-type-btn" onclick="selectDocType(this,'quotation')">
+          <div class="dt-icon">📄</div>
+          <span class="dt-label">Quotation / Rate</span>
+        </div>
+        <div class="doc-type-btn" onclick="selectDocType(this,'po')">
+          <div class="dt-icon">📝</div>
+          <span class="dt-label">Purchase Order</span>
+        </div>
+        <div class="doc-type-btn" onclick="selectDocType(this,'challan')">
+          <div class="dt-icon">🧾</div>
+          <span class="dt-label">Challan / Kaccha Bill</span>
+        </div>
+        <div class="doc-type-btn" onclick="selectDocType(this,'invoice')">
+          <div class="dt-icon">🏷️</div>
+          <span class="dt-label">GST Invoice / Bill</span>
+        </div>
+        <div class="doc-type-btn" onclick="selectDocType(this,'gemquote')">
+          <div class="dt-icon">💻</div>
+          <span class="dt-label">GeM Quote</span>
+        </div>
+        <div class="doc-type-btn" onclick="selectDocType(this,'techspec')">
+          <div class="dt-icon">🔧</div>
+          <span class="dt-label">Technical Spec / MTPK</span>
+        </div>
+      </div>
+
+      <div id="singleDocForm" style="display:none;">
+        <hr class="divider">
+        <div class="section-label">Upload Document Images / PDF</div>
+        <div class="upload-zone" id="singleUploadZone">
+          <input type="file" accept="image/*,application/pdf" multiple id="singleFileInput" onchange="handleSingleUpload(this)">
+          <div class="upload-icon">📸</div>
+          <div class="upload-text">Click to upload or drag photos here</div>
+          <div class="upload-hint">JPG · PNG · PDF · Multiple files supported</div>
+        </div>
+        <div class="preview-grid" id="singlePreviews"></div>
+
+        <hr class="divider">
+        <div class="section-label">Additional Context (Optional)</div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Item Category</label>
+            <select id="s_category">
+              <option value="">-- Auto detect --</option>
+              <option>Vehicle Spares</option>
+              <option>Consumables / POL</option>
+              <option>Stationery</option>
+              <option>Electrical / Electronics</option>
+              <option>Ration / Provisions</option>
+              <option>Clothing / Accoutrements</option>
+              <option>General Store</option>
+              <option>IT Equipment</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Vehicle Type (if spares)</label>
+            <select id="s_vehicle">
+              <option value="">-- N/A --</option>
+              <option>TATA 407 / LPTA</option>
+              <option>Stallion / Shaktiman</option>
+              <option>BMP-II / ICV</option>
+              <option>T-90 / T-72</option>
+              <option>BRDM / Wheeled AFV</option>
+              <option>Gypsy / Maruti</option>
+              <option>Ambassador / Staff Car</option>
+              <option>Motorcycle</option>
+              <option>Generator Set</option>
+              <option>Other Vehicle</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notes / Specific Checks Needed</label>
+          <textarea id="s_notes" placeholder="e.g. Check if OEM parts only, verify GST rate for HSN 8708, compare with LPP..."></textarea>
+        </div>
+
+        <button class="btn btn-primary" onclick="runSingleCheck()" style="width:100%; justify-content:center; padding:12px;">
+          🔍 RUN DOCUMENT CHECK
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FULL CHAIN CHECK ===== -->
+  <div class="section" id="tab-chain">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">🔗</div>
+        <div>
+          <div class="card-title">Full Procurement Chain Check</div>
+          <div class="card-sub">Dump all documents together — AI auto-identifies each one</div>
+        </div>
+      </div>
+
+      <div class="info-pill">
+        ℹ️ <strong>Just upload everything.</strong> Quotation, PO, Challan, Invoice — in any order, any mix. The AI will identify each document automatically and cross-validate the full chain.
+      </div>
+
+      <div class="section-label">Upload All Documents (Any Order)</div>
+      <div class="upload-zone" id="chainUploadZoneAll">
+        <input type="file" accept="image/*,application/pdf" multiple id="chainAllInput" onchange="handleChainAllUpload(this)">
+        <div class="upload-icon">📸</div>
+        <div class="upload-text"><strong>Click or drag all procurement documents here</strong></div>
+        <div class="upload-hint">Quotation + PO + Challan + Invoice — together, any order</div>
+      </div>
+      <div class="preview-grid" id="chainAllPreviews"></div>
+
+      <div id="chainFileCount" style="display:none; margin-top:10px;">
+        <span class="badge badge-info" id="chainFileCountBadge">0 files loaded</span>
+        <span style="font-size:12px; color:var(--text3); margin-left:8px;">AI will auto-detect document types from contents</span>
+        <button class="btn btn-danger" onclick="clearChainFiles()" style="float:right; padding:4px 10px; font-size:11px;">Clear All</button>
+      </div>
+
+      <hr class="divider">
+      <div class="form-group">
+        <label>Category & Notes (Optional but helpful)</label>
+        <textarea id="chain_notes" placeholder="e.g. TATA LPTA 713 vehicle spares, OEM only, 507 ABW Pune, Board of Officers check required..."></textarea>
+      </div>
+
+      <button class="btn btn-primary" onclick="runChainCheck()" style="width:100%; justify-content:center; padding:14px; font-size:14px;">
+        🔗 RUN FULL CHAIN ANALYSIS
+      </button>
+
+      <!-- Debug panel — shown on error -->
+      <div id="debugPanel" style="display:none; margin-top:12px; background:var(--red-dim); border:1px solid var(--red); border-radius:6px; padding:14px;">
+        <div style="color:var(--red); font-weight:600; font-size:12px; margin-bottom:8px;">⚠️ DEBUG INFO (share this if reporting issue)</div>
+        <pre id="debugText" style="font-size:10px; color:var(--text2); white-space:pre-wrap; word-break:break-all; max-height:200px; overflow-y:auto;"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RESULTS ===== -->
+  <div class="section" id="tab-results">
+
+    <div id="resultsEmpty" class="empty-state card">
+      <div class="empty-icon">📊</div>
+      <div class="empty-text">No analysis run yet. Go to Single Doc or Chain Check to begin.</div>
+    </div>
+
+    <div id="resultsContent" style="display:none;">
+      <!-- Populated dynamically -->
+    </div>
+
+  </div>
+
+</div><!-- /container -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+
+// ============================================================
+// STATE
+// ============================================================
+let lppData = [];
+let singleDocFiles = [];
+let chainDocFiles = { quotation: [], po: [], challan: [], invoice: [] };
+let currentDocType = null;
+let currentChainStep = null;
+let analysisResults = [];
+
+// HSN RATE DATABASE — pre-loaded, user-editable
+const HSN_DEFAULTS = [
+  {hsn:'8708',desc:'Parts & accessories for motor vehicles (cars, trucks, jeeps)',cat:'Vehicle Spares',rate:18,note:'TATA, Ashok Leyland, Mahindra, Maruti. OEM & aftermarket.',src:'CGST Sch IV, Notif 01/2017',custom:false},
+  {hsn:'8409',desc:'Engine parts — pistons, rings, valves for IC engines',cat:'Vehicle Spares',rate:18,note:'Crankshafts, camshafts, cylinder heads',src:'CGST Sch IV',custom:false},
+  {hsn:'8483',desc:'Transmission shafts, gearboxes, clutch assemblies',cat:'Vehicle Spares',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'8484',desc:'Gaskets and sealing sets for engines',cat:'Vehicle Spares',rate:18,note:'Head gaskets, engine sealing sets',src:'CGST Sch IV',custom:false},
+  {hsn:'8421',desc:'Filters — oil, air, fuel for vehicles and machinery',cat:'Vehicle Spares',rate:18,note:'Air filter, oil filter, fuel filter assemblies',src:'CGST Sch IV',custom:false},
+  {hsn:'8413',desc:'Fuel injection pumps, water pumps, hydraulic pumps',cat:'Vehicle Spares',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'4009',desc:'Rubber hoses — coolant, radiator, hydraulic',cat:'Vehicle Spares',rate:18,note:'Reinforced rubber pipes and hoses',src:'CGST Sch IV',custom:false},
+  {hsn:'4010',desc:'V-belts, fan belts, timing belts',cat:'Vehicle Spares',rate:18,note:'Transmission and drive belts',src:'CGST Sch IV',custom:false},
+  {hsn:'8482',desc:'Ball bearings and roller bearings',cat:'Vehicle Spares',rate:18,note:'All types of bearings',src:'CGST Sch IV',custom:false},
+  {hsn:'8511',desc:'Spark plugs, glow plugs, ignition coils, distributors',cat:'Vehicle Spares',rate:18,note:'Electrical ignition and starting equipment',src:'CGST Sch IV',custom:false},
+  {hsn:'8512',desc:'Headlights, indicators, horns — vehicle electrical lighting',cat:'Vehicle Spares',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'8714',desc:'Parts and accessories for motorcycles',cat:'Vehicle Spares',rate:28,note:'Motorcycle spare parts attract 28%',src:'CGST Sch V',custom:false},
+  {hsn:'4011',desc:'New pneumatic rubber tyres — all vehicles',cat:'Tyres and Tubes',rate:28,note:'New tyres for cars, trucks, buses',src:'CGST Sch V',custom:false},
+  {hsn:'4012',desc:'Retreaded or used pneumatic rubber tyres',cat:'Tyres and Tubes',rate:18,note:'Retreaded tyres 18% only — lower than new',src:'CGST Sch IV',custom:false},
+  {hsn:'4013',desc:'Inner tubes for tyres',cat:'Tyres and Tubes',rate:28,note:'Rubber inner tubes',src:'CGST Sch V',custom:false},
+  {hsn:'2710',desc:'Engine oil, hydraulic oil, gear oil, diesel, lubricants',cat:'POL / Lubricants',rate:18,note:'Mineral oils and lubricating preparations',src:'CGST Sch IV',custom:false},
+  {hsn:'3403',desc:'Lubricating grease, penetrating oils',cat:'POL / Lubricants',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'8507',desc:'Vehicle batteries, UPS batteries — lead acid',cat:'Batteries',rate:28,note:'Lithium-ion cells reduced to 18% from FY24',src:'CGST Sch V',custom:false},
+  {hsn:'8506',desc:'Primary cells and dry cell batteries — AA, AAA',cat:'Batteries',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'8536',desc:'Electrical switches, MCBs, fuses, relays, sockets',cat:'Electrical',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'8544',desc:'Insulated wire, electrical cable, optical fibre',cat:'Electrical',rate:18,note:'Copper wire, armoured cable',src:'CGST Sch IV',custom:false},
+  {hsn:'8539',desc:'LED lights, LED bulbs, LED fixtures',cat:'Electrical',rate:12,note:'Reduced to 12% by Notif 24/2018',src:'CGST Notif 24/2018',custom:false},
+  {hsn:'9405',desc:'Lamps, light fittings, searchlights, floodlights',cat:'Electrical',rate:18,note:'Non-LED lighting 18%',src:'CGST Sch IV',custom:false},
+  {hsn:'8414',desc:'Ceiling fans, table fans, exhaust fans, blowers, air pumps',cat:'Fans and HVAC',rate:18,note:'All types of fans',src:'CGST Sch IV',custom:false},
+  {hsn:'8415',desc:'Air conditioning machines — split AC, window AC',cat:'Fans and HVAC',rate:28,note:'',src:'CGST Sch V',custom:false},
+  {hsn:'8418',desc:'Refrigerators, deep freezers, water coolers',cat:'Fans and HVAC',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'4820',desc:'Registers, notebooks, diaries, account books',cat:'Stationery',rate:12,note:'',src:'CGST Sch III',custom:false},
+  {hsn:'4802',desc:'A4 paper, printing paper, writing paper — reams',cat:'Stationery',rate:12,note:'Uncoated office paper',src:'CGST Sch III',custom:false},
+  {hsn:'9608',desc:'Ball pens, gel pens, pencils, markers, highlighters',cat:'Stationery',rate:12,note:'',src:'CGST Sch III',custom:false},
+  {hsn:'9612',desc:'Printer ink cartridges, toner cartridges, ribbons',cat:'Stationery',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'3926',desc:'Plastic files, folders, document holders',cat:'Stationery',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'1001',desc:'Wheat, atta (unbranded)',cat:'Ration / Food',rate:0,note:'Unbranded — nil rated. Branded 5%.',src:'CGST Nil Notif',custom:false},
+  {hsn:'1006',desc:'Rice (unbranded)',cat:'Ration / Food',rate:0,note:'Unbranded — nil rated. Branded 5%.',src:'CGST Nil Notif',custom:false},
+  {hsn:'0901',desc:'Coffee — roasted, ground, instant',cat:'Ration / Food',rate:5,note:'',src:'CGST Sch II',custom:false},
+  {hsn:'0902',desc:'Tea — black, green, CTC',cat:'Ration / Food',rate:5,note:'',src:'CGST Sch II',custom:false},
+  {hsn:'1701',desc:'Sugar — cane sugar, beet sugar',cat:'Ration / Food',rate:5,note:'',src:'CGST Sch II',custom:false},
+  {hsn:'1507',desc:'Edible vegetable oils — soya, groundnut, sunflower, palm',cat:'Ration / Food',rate:5,note:'',src:'CGST Sch II',custom:false},
+  {hsn:'0402',desc:'Milk powder, condensed milk, skimmed milk powder',cat:'Ration / Food',rate:5,note:'',src:'CGST Sch II',custom:false},
+  {hsn:'2106',desc:'Food preparations — spice mix, masala, packaged food',cat:'Ration / Food',rate:12,note:'Branded packaged food',src:'CGST Sch III',custom:false},
+  {hsn:'2202',desc:'Packaged drinking water, mineral water',cat:'Ration / Food',rate:18,note:'<20L bottle 18%; >20L jar 12%',src:'CGST Sch IV',custom:false},
+  {hsn:'5208',desc:'Woven cotton fabrics — uniform cloth, shirting',cat:'Clothing / Fabric',rate:5,note:'Fabric up to Rs1000/metre is 5%',src:'CGST Sch II',custom:false},
+  {hsn:'6211',desc:'Track suits, fatigues, combat dress, windcheaters',cat:'Clothing / Fabric',rate:12,note:'Garments above Rs1000 value attract 12%',src:'CGST Sch III',custom:false},
+  {hsn:'6403',desc:'Leather boots, uniform shoes, safety footwear',cat:'Clothing / Fabric',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'8471',desc:'Computers, laptops, tablets, servers, printers',cat:'IT / Electronics',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'8517',desc:'Mobile phones, telephones, walkie-talkies, VHF/UHF sets',cat:'IT / Electronics',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'8473',desc:'Computer parts — RAM, HDD, keyboard, mouse, UPS',cat:'IT / Electronics',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'9301',desc:'Military weapons — artillery, tanks, missiles (Govt procurement)',cat:'Arms and Ammunition',rate:0,note:'Exempt for defence establishment procurement',src:'CGST Exemption Notif',custom:false},
+  {hsn:'9306',desc:'Bombs, grenades, ammunition, cartridges',cat:'Arms and Ammunition',rate:12,note:'Commercial sale. Military supply may be exempt.',src:'CGST Sch III',custom:false},
+  {hsn:'3208',desc:'Paints, varnishes, enamels — solvent based',cat:'Other',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'3209',desc:'Water-based paints, emulsion paints',cat:'Other',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'2523',desc:'Portland cement — OPC, PPC, PSC',cat:'Other',rate:28,note:'',src:'CGST Sch V',custom:false},
+  {hsn:'7308',desc:'Structural steel — MS channels, angles, beams, plates',cat:'Other',rate:18,note:'',src:'CGST Sch IV',custom:false},
+  {hsn:'9987',desc:'Maintenance and repair services (SAC)',cat:'Other',rate:18,note:'Vehicle repair, equipment maintenance service',src:'SAC 9987',custom:false},
+  {hsn:'9965',desc:'Goods transport services — GTA (SAC)',cat:'Other',rate:5,note:'No ITC option; or 12% with ITC',src:'SAC 9965',custom:false},
+];
+
+let hsnData = JSON.parse(JSON.stringify(HSN_DEFAULTS));
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('sessionDate').textContent = new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
+
+  // Tab switching — event delegation on tab bar (works on iOS Safari)
+  document.getElementById('tabBar').addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-tab]');
+    if (btn) switchTab(btn.dataset.tab);
+  });
+
+  renderHsnTable();
+  setupDragDrop();
+});
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+// ============================================================
+// TAB SWITCHING — event delegation, no inline onclick (iOS safe)
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tabs .tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('tab-' + tab);
+  if (target) target.classList.add('active');
+}
+
+// ============================================================
+// LPP MANAGEMENT
+// ============================================================
+function handleLppUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  if (file.name.endsWith('.csv')) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const lines = e.target.result.split('\n').slice(1);
+      lines.forEach(line => {
+        const parts = line.split(',');
+        if (parts[0]) {
+          lppData.push({
+            desc: parts[0]?.trim() || '',
+            partNo: parts[1]?.trim() || '',
+            cat: parts[2]?.trim() || 'General',
+            vehicle: parts[3]?.trim() || '',
+            unit: parts[4]?.trim() || 'Nos',
+            lpp: parseFloat(parts[5]) || 0,
+            date: parts[6]?.trim() || ''
+          });
+        }
+      });
+      renderLppTable();
+      showToast(`✅ Loaded ${lppData.length} items from CSV`);
+    };
+    reader.readAsText(file);
+  } else {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const wb = XLSX.read(e.target.result, {type: 'binary'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+        rows.forEach(row => {
+          const keys = Object.keys(row);
+          lppData.push({
+            desc: String(row[keys[0]] || row['Description'] || row['Item'] || row['ITEM'] || ''),
+            partNo: String(row['Part No'] || row['PartNo'] || row['Part Number'] || row[keys[1]] || ''),
+            cat: String(row['Category'] || row['Cat'] || 'General'),
+            vehicle: String(row['Vehicle'] || row['Make'] || ''),
+            unit: String(row['Unit'] || 'Nos'),
+            lpp: parseFloat(row['LPP'] || row['Price'] || row['Rate'] || row[keys[5]] || 0),
+            date: String(row['Date'] || row['Last Date'] || '')
+          });
+        });
+        renderLppTable();
+        showToast(`✅ Loaded ${rows.length} items from Excel`);
+      } catch(err) {
+        showToast('⚠️ Could not parse Excel. Try CSV format.');
+      }
+    };
+    reader.readAsBinaryString(file);
+  }
+  input.value = '';
+}
+
+function showManualLpp() {
+  const f = document.getElementById('manualLppForm');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function addManualLpp() {
+  const desc = document.getElementById('mi_desc').value.trim();
+  const lpp = parseFloat(document.getElementById('mi_lpp').value);
+  if (!desc) { showToast('⚠️ Description required'); return; }
+  lppData.push({
+    desc,
+    partNo: document.getElementById('mi_part').value.trim(),
+    cat: document.getElementById('mi_cat').value,
+    vehicle: document.getElementById('mi_vehicle').value.trim(),
+    unit: document.getElementById('mi_unit').value,
+    lpp: isNaN(lpp) ? 0 : lpp,
+    date: document.getElementById('mi_date').value.trim()
+  });
+  // Clear
+  ['mi_desc','mi_part','mi_lpp','mi_vehicle','mi_date'].forEach(id => document.getElementById(id).value = '');
+  renderLppTable();
+  showToast('✅ Item added');
+}
+
+function deleteLppItem(idx) {
+  lppData.splice(idx, 1);
+  renderLppTable();
+}
+
+function clearLpp() {
+  if (confirm('Clear all LPP data?')) {
+    lppData = [];
+    renderLppTable();
+  }
+}
+
+function renderLppTable() {
+  const tbody = document.getElementById('lppTbody');
+  tbody.innerHTML = '';
+  document.getElementById('lppCountLabel').textContent = lppData.length;
+  document.getElementById('lppCount').textContent = `LPP Items: ${lppData.length}`;
+  document.getElementById('clearLppBtn').style.display = lppData.length ? 'inline-flex' : 'none';
+
+  if (lppData.length === 0) {
+    document.getElementById('lppTableSection').style.display = 'none';
+    document.getElementById('lppEmpty').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('lppTableSection').style.display = 'block';
+  document.getElementById('lppEmpty').style.display = 'none';
+
+  lppData.forEach((item, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="td-mono">${i+1}</td>
+      <td>${item.desc}</td>
+      <td class="td-mono">${item.partNo || '—'}</td>
+      <td><span class="badge badge-info">${item.cat}</span></td>
+      <td>${item.vehicle || '—'}</td>
+      <td>${item.unit}</td>
+      <td class="td-mono" style="color:var(--olive-bright)">₹${item.lpp.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+      <td class="td-mono">${item.date || '—'}</td>
+      <td><button class="td-del" onclick="deleteLppItem(${i})">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function downloadLppTemplate() {
+  const csv = `Description,Part No,Category,Vehicle/Make,Unit,LPP (Rs excl GST),Last Purchase Date
+Air Filter TATA 407,123456,Vehicle Spares,TATA 407,Each,450,03/2024
+Engine Oil 15W40 5L,,Consumables,,Can,850,01/2024
+A4 Paper Ream 500 sheets,,Stationery,,Ream,280,02/2024`;
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'LPP_Template.csv';
+  a.click();
+  showToast('⬇ Template downloaded');
+}
+
+// ============================================================
+// HSN RATE TABLE
+// ============================================================
+function showHsnForm() {
+  const f = document.getElementById('hsnAddForm');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function addHsnEntry() {
+  const hsn = document.getElementById('hi_hsn').value.trim();
+  const desc = document.getElementById('hi_desc').value.trim();
+  if (!hsn || !desc) { showToast('⚠️ HSN code and description required'); return; }
+  const rate = parseInt(document.getElementById('hi_rate').value);
+  hsnData.push({
+    hsn, desc,
+    cat: document.getElementById('hi_cat').value,
+    rate,
+    note: document.getElementById('hi_note').value.trim(),
+    src: 'Custom entry',
+    custom: true
+  });
+  ['hi_hsn','hi_desc','hi_note'].forEach(id => document.getElementById(id).value = '');
+  renderHsnTable();
+  showToast(`✅ HSN ${hsn} added — ${rate}% GST`);
+}
+
+function deleteHsnEntry(idx) {
+  if (hsnData[idx].custom === false) {
+    if (!confirm('This is a default entry. Remove it?')) return;
+  }
+  hsnData.splice(idx, 1);
+  renderHsnTable();
+}
+
+function resetHsnToDefaults() {
+  if (confirm('Reset to default GST rate table? Custom entries will be lost.')) {
+    hsnData = JSON.parse(JSON.stringify(HSN_DEFAULTS));
+    renderHsnTable();
+    showToast('↺ Reset to defaults');
+  }
+}
+
+function renderHsnTable() {
+  const filter = (document.getElementById('hsnFilter')?.value || '').toLowerCase();
+  const catFilter = document.getElementById('hsnCatFilter')?.value || '';
+
+  const filtered = hsnData.map((h,i) => ({...h, _idx:i})).filter(h => {
+    const matchText = !filter || h.hsn.includes(filter) || h.desc.toLowerCase().includes(filter) || h.cat.toLowerCase().includes(filter);
+    const matchCat = !catFilter || h.cat === catFilter;
+    return matchText && matchCat;
+  });
+
+  const tbody = document.getElementById('hsnTbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  const rateColor = {0:'var(--text3)', 5:'var(--green)', 12:'var(--blue)', 18:'var(--amber)', 28:'var(--red)'};
+
+  filtered.forEach(h => {
+    const half = h.rate / 2;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="td-mono" style="font-weight:600;color:var(--olive-bright)">${h.hsn}${h.custom ? ' <span title="Custom entry" style="color:var(--amber)">✏️</span>' : ''}</td>
+      <td style="font-size:12px;">${h.desc}</td>
+      <td><span class="badge badge-info" style="font-size:9px;">${h.cat}</span></td>
+      <td><span style="font-family:var(--mono);font-weight:700;font-size:14px;color:${rateColor[h.rate]||'var(--text)'}">${h.rate}%</span></td>
+      <td class="td-mono" style="color:var(--text2)">${half}%</td>
+      <td class="td-mono" style="color:var(--text2)">${half}%</td>
+      <td class="td-mono" style="color:var(--text2)">${h.rate}%</td>
+      <td style="font-size:11px;color:var(--text3)">${h.note || '—'}</td>
+      <td style="font-size:10px;color:var(--text3);font-family:var(--mono)">${h.src}</td>
+      <td><button class="td-del" onclick="deleteHsnEntry(${h._idx})">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const countEl = document.getElementById('hsnCountLabel');
+  if (countEl) countEl.textContent = filtered.length + (filter || catFilter ? ` of ${hsnData.length}` : '');
+}
+
+function getHsnContext() {
+  // Build compact HSN rate context for AI prompt
+  return hsnData.map(h => `HSN ${h.hsn} (${h.cat}): ${h.rate}% GST — ${h.desc.substring(0,50)}`).join('\n');
+}
+
+// ============================================================
+// SINGLE DOC
+// ============================================================
+function selectDocType(el, type) {
+  document.querySelectorAll('.doc-type-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  currentDocType = type;
+  document.getElementById('singleDocForm').style.display = 'block';
+  singleDocFiles = [];
+  document.getElementById('singlePreviews').innerHTML = '';
+}
+
+function handleSingleUpload(input) {
+  Array.from(input.files).forEach(file => {
+    singleDocFiles.push(file);
+    addPreview(file, 'singlePreviews', singleDocFiles.length - 1, 'single');
+  });
+  input.value = '';
+}
+
+function addPreview(file, containerId, idx, mode) {
+  const container = document.getElementById(containerId);
+  const div = document.createElement('div');
+  div.className = 'preview-item';
+  div.id = `preview-${mode}-${idx}`;
+
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      div.innerHTML = `
+        <img src="${e.target.result}">
+        <div class="preview-label">${file.name.substring(0,18)}</div>
+        <button class="preview-del" onclick="removeFile('${mode}',${idx})">✕</button>
+      `;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    div.innerHTML = `
+      <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;background:var(--surface2)">
+        <span style="font-size:28px">📄</span>
+        <span style="font-size:9px;color:var(--text3);text-align:center;padding:0 4px">${file.name.substring(0,16)}</span>
+      </div>
+      <button class="preview-del" onclick="removeFile('${mode}',${idx})">✕</button>
+    `;
+  }
+  container.appendChild(div);
+}
+
+function removeFile(mode, idx) {
+  if (mode === 'single') { singleDocFiles.splice(idx, 1); refreshPreviews('single'); }
+  else if (mode === 'chainAll') { chainAllFiles.splice(idx, 1); refreshPreviews('chainAll'); updateChainAllCount(); }
+  else { chainDocFiles[mode]?.splice(idx, 1); }
+}
+
+function refreshPreviews(mode) {
+  if (mode === 'single') {
+    const container = document.getElementById('singlePreviews');
+    container.innerHTML = '';
+    singleDocFiles.forEach((f, i) => addPreview(f, 'singlePreviews', i, 'single'));
+  } else if (mode === 'chainAll') {
+    const container = document.getElementById('chainAllPreviews');
+    container.innerHTML = '';
+    chainAllFiles.forEach((f, i) => addPreview(f, 'chainAllPreviews', i, 'chainAll'));
+  }
+}
+
+async function runSingleCheck() {
+  if (!currentDocType) { showToast('⚠️ Select a document type'); return; }
+  if (singleDocFiles.length === 0) { showToast('⚠️ Upload at least one document'); return; }
+
+  showAnalyzing('Extracting document data...',
+    ['📸 Reading document images', '🔍 Identifying document fields', '🧮 Checking GST arithmetic', '📊 Comparing with LPP database', '⚖️ Validating Indian GST compliance', '📋 Preparing report']);
+
+  try {
+    const imageData = await filesToBase64(singleDocFiles);
+    const prompt = buildSingleCheckPrompt(currentDocType, imageData.length, document.getElementById('s_category').value, document.getElementById('s_vehicle').value, document.getElementById('s_notes').value);
+
+    const messages = [{
+      role: 'user',
+      content: [
+        ...imageData.map(d => ({type:'image', source:{type:'base64', media_type: d.type, data: d.data}})),
+        {type:'text', text: prompt}
+      ]
+    }];
+
+    const response = await fetch('/api/proxy', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 4000,
+        messages
+      })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message || 'API error');
+    const text = data.content?.map(c => c.text || '').join('') || '';
+    hideAnalyzing();
+
+    let result;
+    try {
+      result = extractJSON(text);
+    } catch {
+      result = buildFallbackResult(currentDocType, text);
+    }
+
+    analysisResults.unshift({type: 'single', docType: currentDocType, result, timestamp: new Date()});
+    renderResults();
+    switchTab('results');
+
+  } catch (err) {
+    hideAnalyzing();
+    showToast('❌ Error: ' + err.message);
+  }
+}
+
+// ============================================================
+// CHAIN CHECK — auto-detect, dump-all approach
+// ============================================================
+let chainAllFiles = [];
+
+function handleChainAllUpload(input) {
+  Array.from(input.files).forEach(file => {
+    chainAllFiles.push(file);
+    const idx = chainAllFiles.length - 1;
+    addPreview(file, 'chainAllPreviews', idx, 'chainAll');
+  });
+  input.value = '';
+  updateChainAllCount();
+}
+
+function updateChainAllCount() {
+  const n = chainAllFiles.length;
+  const badge = document.getElementById('chainFileCountBadge');
+  const panel = document.getElementById('chainFileCount');
+  if (n > 0) {
+    panel.style.display = 'block';
+    badge.textContent = `${n} file${n!==1?'s':''} loaded`;
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+function clearChainFiles() {
+  chainAllFiles = [];
+  document.getElementById('chainAllPreviews').innerHTML = '';
+  updateChainAllCount();
+}
+
+async function runChainCheck() {
+  if (chainAllFiles.length === 0) { showToast('⚠️ Upload at least one document'); return; }
+
+  document.getElementById('debugPanel').style.display = 'none';
+
+  showAnalyzing('Running full chain analysis...',
+    ['📸 Reading documents', '🔍 Auto-identifying document types', '🔗 Cross-referencing chain', '🧮 Checking GST arithmetic', '📊 LPP variance check', '⚖️ Compliance validation', '📋 Generating report']);
+
+  try {
+    // Convert all files to base64
+    const imageBlocks = [];
+    for (const file of chainAllFiles) {
+      const b64 = await fileToBase64(file);
+      // Anthropic only accepts image/* types for vision — convert PDF indicator to jpeg
+      const mediaType = b64.type.startsWith('image/') ? b64.type : 'image/jpeg';
+      imageBlocks.push({
+        type: 'image',
+        source: { type: 'base64', media_type: mediaType, data: b64.data }
+      });
+    }
+
+    const notes = document.getElementById('chain_notes').value.trim();
+    const lppContext = lppData.length > 0
+      ? `LPP REFERENCE DATABASE:\n` + lppData.slice(0,25).map(i=>`  ${i.desc} | ${i.partNo||'-'} | ₹${i.lpp} per ${i.unit}`).join('\n')
+      : 'No LPP database loaded.';
+
+    const prompt = `You are a senior Indian Army procurement compliance officer and GST expert. You are reviewing ${chainAllFiles.length} procurement document image(s).
+
+IMPORTANT: Each image may be a Quotation, Purchase Order, Delivery Challan (kaccha bill), GST Invoice, or any other procurement document. They may be uploaded in any order. IDENTIFY each document from its contents first, then perform checks.
+
+User notes: ${notes || 'None provided.'}
+${lppContext}
+
+STEP 1 — IDENTIFY each image: Read the heading, document number format, presence/absence of GSTIN, tax lines, signature blocks to determine type.
+
+STEP 2 — CHECK each document individually:
+- Quotation: vendor details, validity, GST registration, HSN codes, rate reasonableness
+- PO: authority, quantities match quotation, delivery terms, inspection clause
+- Challan/Kaccha Bill: NO GST should appear (flag if it does), quantities, vehicle number, signatures. Challan is delivery proof only.
+- GST Invoice: GSTIN format (15 chars), HSN/SAC codes, CGST+SGST (intra-state) vs IGST (inter-state) — only one pair should apply, arithmetic (taxable × rate = GST amount), grand total, e-way bill threshold (>₹50,000), mandatory fields under CGST Rule 46
+
+STEP 3 — CROSS-CHAIN checks:
+- Rates: same from quotation → PO → invoice (flag any unexplained change)
+- Quantities: match across all documents (flag short supply or excess)
+- Vendor: same GSTIN/name throughout
+- Any quantity increase from quotation to PO without amendment
+- Invoice billing for items not in challan (goods not received)
+- Arithmetic errors in any document
+
+STEP 4 — FLAGS: Any inflation indicators, GST fraud patterns, missing mandatory documents
+
+${lppData.length > 0 ? 'STEP 5 — LPP COMPARISON: Compare invoice rates against the LPP database provided above.' : ''}
+
+OUTPUT: Return ONLY a raw JSON object. No text before or after. No markdown. No code fences. Begin with { end with }
+
+{"overallStatus":"WARN","score":68,"summary":"4-document chain analysed. 3 discrepancies found requiring action before payment release.","stagesAnalysed":["Quotation","Purchase Order","Delivery Challan","GST Invoice"],"chainConsistency":"DISCREPANCY FOUND","rateVariance":"All item rates consistent across chain at quoted prices","quantityVariance":"Clutch Plate: Quoted 3, PO raised for 4, Challan delivered 3, Invoice billed 3 — PO amendment unaccounted","finalInvoiceTotal":"40367.80","lppVariance":null,"checks":[{"stage":"quotation","category":"GST Rate","title":"Wrong GST Rate Applied","status":"FAIL","detail":"Quotation applies 28% GST on HSN 8708. Correct rate is 18% (CGST 9% + SGST 9%). Overcharge of ₹3,412 on quotation amount."},{"stage":"invoice","category":"Arithmetic","title":"Line Item Total Error","status":"FAIL","detail":"Coolant Hose row: Qty 6 × ₹380 = ₹2,280 taxable. CGST 9% = ₹205.20, SGST 9% = ₹205.20. Correct total = ₹2,690.40 but invoice shows ₹2,890.40 — overcharge of ₹200."}],"criticalFlags":["GST arithmetic error on invoice — do not pass for payment","Clutch Plate PO qty vs delivery discrepancy unresolved"],"actionRequired":["Return invoice for correction of Coolant Hose line total","Obtain amended PO or explanation for Clutch Plate quantity change","Verify GST rate applied matches HSN 8708 = 18% not 28%"],"indiaLawRef":"CGST Act 2017 S.31, CGST Rule 46, HSN 8708 GST rate notification"}
+
+Fill every field with actual findings from the documents you see. Provide 8-15 checks. Be specific with amounts and part numbers.`;
+
+    const payload = {
+      model: 'claude-sonnet-4-5',
+      max_tokens: 4000,
+      messages: [{
+        role: 'user',
+        content: [...imageBlocks, { type: 'text', text: prompt }]
+      }]
+    };
+
+    const response = await fetch('/api/proxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    // Surface any API-level error clearly
+    if (!response.ok || data.error) {
+      const errMsg = data.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+      showDebug(`API ERROR:\n${JSON.stringify(data, null, 2)}`);
+      throw new Error(errMsg);
+    }
+
+    const rawText = data.content?.map(c => c.text || '').join('') || '';
+
+    if (!rawText) {
+      showDebug(`Empty content. Full response:\n${JSON.stringify(data, null, 2)}`);
+      throw new Error('API returned empty content');
+    }
+
+    hideAnalyzing();
+
+    let result;
+    try {
+      result = extractJSON(rawText);
+    } catch(parseErr) {
+      showDebug(`JSON PARSE FAILED.\nRaw text (first 1000 chars):\n${rawText.substring(0,1000)}\n\nError: ${parseErr.message}`);
+      // Still show as fallback — don't block the user
+      result = buildFallbackResult('chain', rawText);
+    }
+
+    analysisResults.unshift({ type: 'chain', result, timestamp: new Date(), fileCount: chainAllFiles.length });
+    renderResults();
+    switchTab('results');
+
+  } catch(err) {
+    hideAnalyzing();
+    showToast('❌ ' + err.message);
+    showDebug(`CAUGHT ERROR: ${err.message}\n${err.stack||''}`);
+  }
+}
+
+function showDebug(text) {
+  const panel = document.getElementById('debugPanel');
+  document.getElementById('debugText').textContent = text;
+  panel.style.display = 'block';
+  // Switch to chain tab so user sees it
+  switchTab('chain');
+}
+
+// Keep old chain functions as stubs so nothing breaks
+function activateChainStep() {}
+function handleChainUpload() {}
+function updateChainStatus() {}
+
+// ============================================================
+// JSON EXTRACTOR — handles markdown fences, leading text, truncation
+// ============================================================
+function extractJSON(raw) {
+  if (!raw) throw new Error('Empty response');
+
+  // 1. Strip markdown code fences
+  let s = raw.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+
+  // 2. Try direct parse first
+  try { return JSON.parse(s); } catch(_) {}
+
+  // 3. Find the first { and last } — extract the outermost JSON object
+  const first = s.indexOf('{');
+  const last = s.lastIndexOf('}');
+  if (first !== -1 && last !== -1 && last > first) {
+    try { return JSON.parse(s.slice(first, last + 1)); } catch(_) {}
+  }
+
+  // 4. If truncated (missing closing brace), try to auto-close
+  if (first !== -1) {
+    let fragment = s.slice(first);
+    // Count open braces/brackets to close
+    let braces = 0, brackets = 0, inStr = false, esc = false;
+    for (const ch of fragment) {
+      if (esc) { esc = false; continue; }
+      if (ch === '\\' && inStr) { esc = true; continue; }
+      if (ch === '"') { inStr = !inStr; continue; }
+      if (inStr) continue;
+      if (ch === '{') braces++;
+      if (ch === '}') braces--;
+      if (ch === '[') brackets++;
+      if (ch === ']') brackets--;
+    }
+    // Close any open structures
+    if (brackets > 0) fragment += ']'.repeat(brackets);
+    if (braces > 0) fragment += '}'.repeat(braces);
+    try { return JSON.parse(fragment); } catch(_) {}
+  }
+
+  throw new Error('Could not extract JSON from response');
+}
+
+// ============================================================
+// PROMPTS
+// ============================================================
+function buildSingleCheckPrompt(docType, numImages, category, vehicle, notes) {
+  const lppContext = lppData.length > 0 ? `\n\nLPP DATABASE (${lppData.length} items):\n` + lppData.slice(0,30).map(i=>`- ${i.desc} | ${i.partNo} | ₹${i.lpp} | ${i.unit}`).join('\n') : '\n\nNo LPP data provided.';
+
+  const docSpecific = {
+    quotation: `Check: vendor name/address/contact present, item descriptions clear, unit rates, HSN/SAC code if present, validity date, GST registration number, comparative rates if multiple vendors, reasonableness vs market.`,
+    po: `Check: PO number, date, authority signature, vendor details match, item quantities/rates match quotation, delivery timeline, payment terms, inspection clause, warranty clause.`,
+    challan: `Check: challan number, date, dispatched from/to addresses, item description, quantities, vehicle number if transport, signature of issuing party. Note: kaccha challans won't have GST — flag if GST is present (potential fraud indicator).`,
+    invoice: `Check ALL: Invoice number (alpha-numeric), Invoice date, Supplier GSTIN (15-digit format), Buyer GSTIN, Place of Supply, HSN/SAC codes, taxable value calculation, GST rate (verify correct rate for item category), CGST+SGST (intra-state) vs IGST (inter-state) — only one should apply, GST amount arithmetic, total amount with GST, whether e-way bill needed (value >₹50,000), bank details for payment.`,
+    gemquote: `Check: GeM bid number, product specification match, OEM vs non-OEM, delivery timelines, warranty, comparison with requirement.`,
+    techspec: `Check: specification completeness, OEM part numbers, compatibility with vehicle/equipment mentioned, brand restrictions (proprietary vs generic), test certificates required.`
+  };
+
+  return `You are an expert Indian Army procurement compliance officer and Indian GST law specialist. CRITICAL INSTRUCTION: Output ONLY a raw JSON object. No preamble, no explanation, no markdown, no code fences. Start your response with { and end with }.
+
+Document type: ${docType.toUpperCase()}
+Number of images: ${numImages}
+Item category: ${category || 'Auto-detect from document'}
+Vehicle/Make: ${vehicle || 'N/A'}
+Notes: ${notes || 'None'}
+
+CHECKS TO PERFORM: ${docSpecific[docType] || 'Comprehensive procurement document check.'}
+${lppContext}
+
+GST RATE REFERENCE TABLE (use this to verify vendor's applied GST rate is correct):
+${getHsnContext()}
+
+IMPORTANT: When you find an HSN code in the document, look it up in the rate table above and check if the vendor applied the correct rate. Flag any mismatch as FAIL with the correct rate.
+
+OUTPUT THIS EXACT JSON STRUCTURE (replace placeholder values with actual findings):
+{"docType":"${docType}","overallStatus":"PASS","score":85,"summary":"Brief 2-line summary of findings","vendorName":"vendor name from doc or null","invoiceNumber":"doc number or null","invoiceDate":"date or null","totalAmount":"total or null","gstAmount":"GST amount or null","taxableValue":"taxable value or null","gstRate":"GST % or null","gstin":"GSTIN or null","hsnCode":"HSN/SAC or null","checks":[{"category":"GST Compliance","title":"GSTIN Format","status":"PASS","detail":"GSTIN 27AABCS1234F1Z5 is valid 15-digit format for Maharashtra"},{"category":"Arithmetic","title":"Tax Calculation","status":"FAIL","detail":"GST calculated at 28% but correct rate for HSN 8708 is 18%"}],"lppComparison":"comparison text or null","actionRequired":["Action 1","Action 2"],"indiaLawRef":"CGST Act 2017, Rule 46"}
+
+Provide 6-12 check items covering all applicable categories. Use actual values from the document in detail fields.`;
+}
+
+function buildChainCheckPrompt(stageMap, notes, lpp) {
+  const stageList = [...new Set(stageMap)].join(', ');
+  const lppContext = lpp.length > 0 ? `LPP Database: ${lpp.slice(0,20).map(i=>`${i.desc}: ₹${i.lpp}`).join('; ')}` : 'No LPP data.';
+
+  return `You are an expert Indian Army procurement compliance officer. CRITICAL INSTRUCTION: Output ONLY a raw JSON object. No preamble, no explanation, no markdown, no code fences. Start your response with { and end with }.
+
+PROCUREMENT CHAIN IMAGES PROVIDED: ${stageList}
+Notes: ${notes || 'None'}
+${lppContext}
+
+GST RATE REFERENCE TABLE (cross-check every HSN code found against this):
+${getHsnContext()}
+
+PERFORM THESE CROSS-CHAIN CHECKS:
+1. RATE CONSISTENCY - rates same from quotation to final invoice
+2. QUANTITY CONSISTENCY - quantities match across all stages
+3. VENDOR CONSISTENCY - same vendor details throughout
+4. GST RATE CORRECTNESS - look up each HSN code in the rate table above; flag if vendor applied wrong rate
+5. GST ARITHMETIC - CGST+SGST (intra-state) or IGST (inter-state), calculations correct
+6. LPP VARIANCE - compare invoice price vs LPP database
+7. FRAUD FLAGS - inflated bills, substitution, quantity manipulation
+8. ARMY PROCUREMENT - CRV readiness, Board of Officers inspection flag, OEM compliance
+
+OUTPUT THIS EXACT JSON (replace with actual findings from the images):
+{"overallStatus":"WARN","score":72,"summary":"Brief 2-line executive summary of chain","stagesAnalysed":["quotation","po","challan","invoice"],"chainConsistency":"DISCREPANCY FOUND","rateVariance":"description or null","quantityVariance":"description or null","finalInvoiceTotal":"amount or null","lppVariance":"% or null","checks":[{"stage":"cross-chain","category":"Quantity","title":"Clutch Plate Quantity Mismatch","status":"FAIL","detail":"Quotation: 3 nos, PO: 4 nos, Challan: 3 nos, Invoice: 3 nos - PO quantity amendment not reflected"},{"stage":"invoice","category":"GST Compliance","title":"GST Rate Validation","status":"PASS","detail":"CGST 9% + SGST 9% = 18% correctly applied for HSN 8708"}],"criticalFlags":["Flag 1","Flag 2"],"actionRequired":["Action 1","Action 2"],"indiaLawRef":"CGST Act 2017, Army procurement regulations"}
+
+Provide 8-15 check items. Use actual values, amounts, part numbers from the documents.`;
+}
+
+// ============================================================
+// RESULTS RENDERING
+// ============================================================
+function renderResults() {
+  if (analysisResults.length === 0) {
+    document.getElementById('resultsEmpty').style.display = 'block';
+    document.getElementById('resultsContent').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('resultsEmpty').style.display = 'none';
+  document.getElementById('resultsContent').style.display = 'block';
+
+  const html = analysisResults.map((ar, idx) => renderSingleResult(ar, idx)).join('');
+  document.getElementById('resultsContent').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;" class="no-print">
+      <div style="font-size:13px;color:var(--text2)">${analysisResults.length} analysis run(s)</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="window.print()">🖨 Print Report</button>
+        <button class="btn btn-amber" onclick="clearResults()">🗑 Clear</button>
+      </div>
+    </div>
+    ${html}
+  `;
+}
+
+function renderSingleResult(ar, idx) {
+  const r = ar.result;
+  const statusColor = {'PASS':'var(--green)','WARN':'var(--amber)','FAIL':'var(--red)'}[r.overallStatus] || 'var(--text2)';
+  const scoreClass = r.score >= 75 ? 'score-pass' : r.score >= 50 ? 'score-warn' : 'score-fail';
+
+  // Extracted doc details
+  const details = [];
+  if (r.vendorName) details.push({k:'Vendor', v: r.vendorName});
+  if (r.invoiceNumber) details.push({k:'Doc No', v: r.invoiceNumber});
+  if (r.invoiceDate) details.push({k:'Date', v: r.invoiceDate});
+  if (r.totalAmount) details.push({k:'Total Amount', v: '₹' + r.totalAmount});
+  if (r.gstAmount) details.push({k:'GST Amount', v: '₹' + r.gstAmount});
+  if (r.taxableValue) details.push({k:'Taxable Value', v: '₹' + r.taxableValue});
+  if (r.gstRate) details.push({k:'GST Rate', v: r.gstRate});
+  if (r.gstin) details.push({k:'GSTIN', v: r.gstin});
+  if (r.hsnCode) details.push({k:'HSN/SAC', v: r.hsnCode});
+
+  const checks = (r.checks || []);
+  const passCount = checks.filter(c=>c.status==='PASS').length;
+  const failCount = checks.filter(c=>c.status==='FAIL').length;
+  const warnCount = checks.filter(c=>c.status==='WARN').length;
+
+  const statusIcon = {'PASS':'✅','WARN':'⚠️','FAIL':'❌'};
+  const badgeClass = {'PASS':'badge-pass','WARN':'badge-warn','FAIL':'badge-fail','INFO':'badge-info','NA':'badge-na'};
+
+  return `
+  <div class="result-panel" id="result-${idx}">
+    <div class="result-header">
+      <div>
+        <div class="result-title">
+          ${statusIcon[r.overallStatus] || '📋'} 
+          ${ar.type === 'chain' ? '🔗 Full Chain Analysis' : '🔍 ' + (ar.docType||'').toUpperCase() + ' Check'}
+          &nbsp;<span style="font-size:11px;color:var(--text3);font-family:var(--mono)">${ar.timestamp.toLocaleTimeString('en-IN')}</span>
+        </div>
+        <div style="margin-top:6px;font-size:12px;color:var(--text2)">${r.summary || ''}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="result-score ${scoreClass}">${r.score || '—'}</div>
+        <div style="font-size:10px;color:var(--text3)">/ 100</div>
+      </div>
+    </div>
+
+    <div class="result-checks">
+
+      ${details.length > 0 ? `
+      <div style="margin-bottom:16px;">
+        <div class="section-label">Extracted Document Data</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${details.map(d=>`
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-size:12px;">
+              <span style="color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.5px;display:block;">${d.k}</span>
+              <span style="font-family:var(--mono);color:var(--olive-bright)">${d.v}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>` : ''}
+
+      ${r.chainConsistency ? `
+      <div class="check-item">
+        <div class="check-icon">${r.chainConsistency==='CONSISTENT'?'✅':'⚠️'}</div>
+        <div class="check-body">
+          <div class="check-title">Chain Consistency: ${r.chainConsistency}</div>
+          ${r.rateVariance ? `<div class="check-detail">Rate: ${r.rateVariance}</div>`:''}
+          ${r.quantityVariance ? `<div class="check-detail">Qty: ${r.quantityVariance}</div>`:''}
+          ${r.lppVariance ? `<div class="check-detail">LPP Variance: <span class="hl">${r.lppVariance}</span></div>`:''}
+        </div>
+      </div>` : ''}
+
+      <div class="section-label" style="margin-top:12px;">
+        Check Results 
+        <span class="badge badge-pass" style="margin-left:8px;">✓ ${passCount}</span>
+        <span class="badge badge-warn" style="margin-left:4px;">⚠ ${warnCount}</span>
+        <span class="badge badge-fail" style="margin-left:4px;">✗ ${failCount}</span>
+      </div>
+
+      ${checks.map(c => `
+      <div class="check-item">
+        <div class="check-icon">${{'PASS':'✅','FAIL':'❌','WARN':'⚠️','INFO':'ℹ️','NA':'—'}[c.status]||'•'}</div>
+        <div class="check-body">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+            <span class="check-title">${c.title}</span>
+            <span class="badge ${badgeClass[c.status]||'badge-na'}">${c.status}</span>
+            ${c.stage ? `<span style="font-size:10px;color:var(--text3);font-family:var(--mono)">[${c.stage}]</span>` : ''}
+          </div>
+          <div class="check-detail">${c.detail}</div>
+        </div>
+      </div>`).join('')}
+
+      ${r.lppComparison ? `
+      <div class="check-item">
+        <div class="check-icon">📊</div>
+        <div class="check-body">
+          <div class="check-title">LPP Comparison</div>
+          <div class="check-detail">${r.lppComparison}</div>
+        </div>
+      </div>` : ''}
+
+      ${(r.criticalFlags||[]).length > 0 ? `
+      <div style="background:var(--red-dim);border:1px solid var(--red);border-radius:6px;padding:12px 16px;margin-top:12px;">
+        <div style="color:var(--red);font-weight:600;font-size:13px;margin-bottom:8px;">🚨 CRITICAL FLAGS</div>
+        ${r.criticalFlags.map(f=>`<div style="font-size:12px;color:var(--text2);padding:3px 0;">• ${f}</div>`).join('')}
+      </div>` : ''}
+
+      ${(r.actionRequired||[]).length > 0 ? `
+      <div style="background:var(--amber-dim);border:1px solid var(--amber);border-radius:6px;padding:12px 16px;margin-top:12px;">
+        <div style="color:var(--amber);font-weight:600;font-size:13px;margin-bottom:8px;">📋 Actions Required</div>
+        ${r.actionRequired.map((a,i)=>`<div style="font-size:12px;color:var(--text2);padding:3px 0;">${i+1}. ${a}</div>`).join('')}
+      </div>` : ''}
+
+      ${r.indiaLawRef ? `
+      <div style="margin-top:12px;font-size:11px;color:var(--text3);font-family:var(--mono);padding:8px 12px;background:var(--surface2);border-radius:4px;">
+        📖 Law Reference: ${r.indiaLawRef}
+      </div>` : ''}
+
+    </div>
+  </div>`;
+}
+
+function buildFallbackResult(type, rawText) {
+  return {
+    docType: type,
+    overallStatus: 'WARN',
+    score: 50,
+    summary: 'Analysis completed. Review detailed findings below.',
+    checks: [{
+      category: 'Analysis',
+      title: 'Document Analysis',
+      status: 'INFO',
+      detail: rawText.substring(0, 800)
+    }],
+    actionRequired: ['Review the analysis output above for detailed findings'],
+    indiaLawRef: 'GST Act 2017, CGST Rules 2017'
+  };
+}
+
+function clearResults() {
+  if (confirm('Clear all analysis results?')) {
+    analysisResults = [];
+    renderResults();
+  }
+}
+
+// ============================================================
+// FILE UTILS
+// ============================================================
+async function filesToBase64(files) {
+  return Promise.all(files.map(fileToBase64));
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    // Compress image before converting to base64
+    const img = document.createElement('img');
+    const reader = new FileReader();
+    reader.onload = e => {
+      img.onload = () => {
+        // Resize to max 1000px on longest side
+        const MAX = 1000;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        // Convert to JPEG at 70% quality
+        const compressed = canvas.toDataURL('image/jpeg', 0.7);
+        const base64 = compressed.split(',')[1];
+        res({ data: base64, type: 'image/jpeg' });
+      };
+      img.onerror = () => {
+        // Fallback: use original if image load fails
+        const base64 = e.target.result.split(',')[1];
+        res({ data: base64, type: file.type || 'image/jpeg' });
+      };
+      img.src = e.target.result;
+    };
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ============================================================
+// OVERLAY / TOAST
+// ============================================================
+let stepInterval;
+
+function showAnalyzing(title, steps) {
+  document.getElementById('analyzingText').textContent = title;
+  document.getElementById('analyzingOverlay').classList.add('visible');
+  let i = 0;
+  stepInterval = setInterval(() => {
+    document.getElementById('analyzingSteps').textContent = steps[i % steps.length];
+    i++;
+  }, 1200);
+}
+
+function hideAnalyzing() {
+  clearInterval(stepInterval);
+  document.getElementById('analyzingOverlay').classList.remove('visible');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// DRAG DROP
+// ============================================================
+function setupDragDrop() {
+  ['singleUploadZone'].forEach(id => {
+    const zone = document.getElementById(id);
+    if (!zone) return;
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+    });
+  });
+}
+
+</script>
+</body>
+</html>

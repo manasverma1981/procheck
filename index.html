@@ -1663,36 +1663,46 @@ async function runChainCheck() {
 
     const prompt = `You are a senior Indian Army procurement compliance officer and GST expert. You are reviewing ${chainAllFiles.length} procurement document image(s).
 
-IMPORTANT: Each image may be a Quotation, Purchase Order, Delivery Challan (kaccha bill), GST Invoice, or any other procurement document. They may be uploaded in any order. IDENTIFY each document from its contents first, then perform checks.
+CRITICAL RULES — MUST FOLLOW:
+1. ONLY analyse documents actually provided in these images. NEVER assume, invent, or reference any document not visible in the images.
+2. If only a challan is provided — check only the challan. Do NOT compare against a PO that was not uploaded.
+3. If only an invoice is provided — check only that invoice. Do NOT invent quantities or rates from imaginary POs or quotations.
+4. Cross-chain comparisons (quotation vs PO vs challan vs invoice) are ONLY done when those specific documents are actually present in the images.
+5. Real-world Indian documents are often handwritten, rubber-stamped, mixed Hindi/English, blurry, or non-standard format. Extract what you can read. If a field is unclear or unreadable, say "Could not read clearly" — never guess or invent values.
+6. Kaccha challans / delivery challans are NOT tax invoices. They will have NO GST. This is normal and correct — do NOT flag absence of GST on a challan as an error.
 
 User notes: ${notes || 'None provided.'}
 ${lppContext}
 
-STEP 1 — IDENTIFY each image: Read the heading, document number format, presence/absence of GSTIN, tax lines, signature blocks to determine type.
+STEP 1 — IDENTIFY each image from its actual contents:
+- Look for: document title/heading, presence of GSTIN, tax columns, signature blocks, rubber stamps, document numbers
+- Common identifiers: "Quotation/Rate" = quotation, "Purchase Order/PO" = PO, "Challan/Delivery Note/Kaccha Bill" = challan, "Tax Invoice/Bill/GST Invoice" = invoice
+- If document type is unclear, state "Document type unclear" and describe what you see
 
-STEP 2 — CHECK each document individually:
-- Quotation: vendor details, validity, GST registration, HSN codes, rate reasonableness
-- PO: authority, quantities match quotation, delivery terms, inspection clause
-- Challan/Kaccha Bill: NO GST should appear (flag if it does), quantities, vehicle number, signatures. Challan is delivery proof only.
-- GST Invoice: GSTIN format (15 chars), HSN/SAC codes, CGST+SGST (intra-state) vs IGST (inter-state) — only one pair should apply, arithmetic (taxable × rate = GST amount), grand total, e-way bill threshold (>₹50,000), mandatory fields under CGST Rule 46
+STEP 2 — CHECK each document you can actually see:
+- Quotation: vendor details, validity date, GST registration, HSN codes, rate reasonableness
+- PO: authority signature, quantities, delivery terms, inspection clause
+- Challan: quantities delivered, vehicle number if any, receiver signature. NO GST expected — normal.
+- GST Invoice: GSTIN format (15 chars), HSN/SAC codes, CGST+SGST (intra-state) OR IGST (inter-state) — never both, arithmetic verification, mandatory fields under CGST Rule 46
 
-STEP 3 — CROSS-CHAIN checks:
-- Rates: same from quotation → PO → invoice (flag any unexplained change)
-- Quantities: match across all documents (flag short supply or excess)
-- Vendor: same GSTIN/name throughout
-- Any quantity increase from quotation to PO without amendment
-- Invoice billing for items not in challan (goods not received)
-- Arithmetic errors in any document
+STEP 3 — CROSS-CHAIN (ONLY if multiple document types are actually present):
+- Rates consistent across documents actually provided
+- Quantities match across documents actually provided
+- Vendor name/GSTIN consistent
 
-STEP 4 — FLAGS: Any inflation indicators, GST fraud patterns, missing mandatory documents
+STEP 4 — FLAGS: Inflation indicators, GST fraud patterns. Only based on what is visible.
 
-${lppData.length > 0 ? 'STEP 5 — LPP COMPARISON: Compare invoice rates against the LPP database provided above.' : ''}
+${lppData.length > 0 ? 'STEP 5 — LPP COMPARISON: Compare rates from documents against LPP database.' : ''}
+
+GST RATE REFERENCE:
+${getHsnContext().split('\n').slice(0,20).join('\n')}
 
 OUTPUT: Return ONLY a raw JSON object. No text before or after. No markdown. No code fences. Begin with { end with }
 
-{"overallStatus":"WARN","score":68,"summary":"4-document chain analysed. 3 discrepancies found requiring action before payment release.","stagesAnalysed":["Quotation","Purchase Order","Delivery Challan","GST Invoice"],"chainConsistency":"DISCREPANCY FOUND","rateVariance":"All item rates consistent across chain at quoted prices","quantityVariance":"Clutch Plate: Quoted 3, PO raised for 4, Challan delivered 3, Invoice billed 3 — PO amendment unaccounted","finalInvoiceTotal":"40367.80","lppVariance":null,"checks":[{"stage":"quotation","category":"GST Rate","title":"Wrong GST Rate Applied","status":"FAIL","detail":"Quotation applies 28% GST on HSN 8708. Correct rate is 18% (CGST 9% + SGST 9%). Overcharge of ₹3,412 on quotation amount."},{"stage":"invoice","category":"Arithmetic","title":"Line Item Total Error","status":"FAIL","detail":"Coolant Hose row: Qty 6 × ₹380 = ₹2,280 taxable. CGST 9% = ₹205.20, SGST 9% = ₹205.20. Correct total = ₹2,690.40 but invoice shows ₹2,890.40 — overcharge of ₹200."}],"criticalFlags":["GST arithmetic error on invoice — do not pass for payment","Clutch Plate PO qty vs delivery discrepancy unresolved"],"actionRequired":["Return invoice for correction of Coolant Hose line total","Obtain amended PO or explanation for Clutch Plate quantity change","Verify GST rate applied matches HSN 8708 = 18% not 28%"],"indiaLawRef":"CGST Act 2017 S.31, CGST Rule 46, HSN 8708 GST rate notification"}
+{"overallStatus":"WARN","score":68,"summary":"1 challan analysed. Quantities and delivery details checked. No PO or invoice provided for cross-validation.","stagesAnalysed":["Delivery Challan"],"chainConsistency":"SINGLE DOCUMENT — no cross-chain check possible","rateVariance":null,"quantityVariance":null,"finalInvoiceTotal":null,"lppVariance":null,"checks":[{"stage":"challan","category":"Document Type","title":"Document Identified","status":"INFO","detail":"Delivery challan identified. No GST present — correct for a challan/kaccha bill."},{"stage":"challan","category":"Completeness","title":"Mandatory Fields","status":"PASS","detail":"Challan number, date, vendor name, delivery address, item descriptions and quantities present."}],"criticalFlags":[],"actionRequired":["Upload GST invoice for tax compliance check","Upload PO to verify quantities against order"],"indiaLawRef":"CGST Act 2017 — challan is delivery proof only, not a tax document"}
 
-Fill every field with actual findings from the documents you see. Provide 8-15 checks. Be specific with amounts and part numbers.`;
+Fill every field with actual findings from the documents you see. If only one document is uploaded, only check that document.`;
+
 
     const payload = {
       model: 'claude-sonnet-4-5',
@@ -2038,46 +2048,96 @@ function clearResults() {
 }
 
 function printReport() {
-  // Works on both desktop and iPhone Safari
-  const content = document.getElementById('resultsContent').innerHTML;
-  const printWindow = window.open('', '_blank');
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>PROC CHECK Report — ${new Date().toLocaleDateString('en-IN')}</title>
-      <style>
-        body { font-family: Arial, sans-serif; font-size: 13px; color: #000; background: #fff; padding: 20px; }
-        .result-panel { border: 1px solid #ccc; border-radius: 6px; margin-bottom: 20px; page-break-inside: avoid; }
-        .result-header { background: #f0f0f0; padding: 12px 16px; display: flex; justify-content: space-between; border-bottom: 1px solid #ccc; }
-        .result-title { font-weight: bold; font-size: 14px; }
-        .result-checks { padding: 12px 16px; }
-        .check-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #eee; }
-        .badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: bold; }
-        .badge-pass { background: #d4edda; color: #155724; }
-        .badge-fail { background: #f8d7da; color: #721c24; }
-        .badge-warn { background: #fff3cd; color: #856404; }
-        .badge-info { background: #d1ecf1; color: #0c5460; }
-        .no-print { display: none !important; }
-        h2 { color: #2d5a27; }
-        @media print { .no-print { display: none !important; } }
-      </style>
-    </head>
-    <body>
-      <h2>🪖 PROC CHECK — Procurement Compliance Report</h2>
-      <p style="color:#666; font-size:12px;">Generated: ${new Date().toLocaleString('en-IN')} | proccheck.onrender.com</p>
-      <hr>
-      ${content}
-    </body>
-    </html>
-  `);
-  printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => {
-    printWindow.print();
-  }, 500);
+  // Prevent tab switch interference - stop event propagation
+  event && event.stopPropagation && event.stopPropagation();
+
+  // Build clean print content from analysisResults directly (not from DOM)
+  if (!analysisResults.length) { showToast('⚠️ No results to print'); return; }
+
+  const statusColors = {'PASS':'#155724','WARN':'#856404','FAIL':'#721c24','INFO':'#0c5460','NA':'#666'};
+  const statusBg = {'PASS':'#d4edda','WARN':'#fff3cd','FAIL':'#f8d7da','INFO':'#d1ecf1','NA':'#f0f0f0'};
+  const statusIcon = {'PASS':'✅','WARN':'⚠️','FAIL':'❌','INFO':'ℹ️','NA':'—'};
+
+  let body = '';
+  analysisResults.forEach((ar, idx) => {
+    const r = ar.result;
+    const checks = (r.checks || []);
+    const score = r.score || '—';
+    const scoreColor = score >= 75 ? '#155724' : score >= 50 ? '#856404' : '#721c24';
+
+    body += `
+    <div class="result-panel">
+      <div class="result-header">
+        <div>
+          <div class="result-title">${ar.type==='chain'?'🔗 Full Chain Analysis':'🔍 '+(ar.docType||'').toUpperCase()+' Check'} &nbsp; <span style="font-size:11px;color:#666">${ar.timestamp.toLocaleTimeString('en-IN')}</span></div>
+          <div style="font-size:12px;color:#444;margin-top:4px">${r.summary||''}</div>
+        </div>
+        <div style="text-align:right;font-size:28px;font-weight:700;color:${scoreColor}">${score}<span style="font-size:12px;color:#666">/100</span></div>
+      </div>
+      <div class="result-checks">
+        ${checks.map(c => `
+          <div class="check-item">
+            <span style="font-size:16px">${statusIcon[c.status]||'•'}</span>
+            <div>
+              <span style="font-weight:600">${c.title}</span>
+              <span style="display:inline-block;margin-left:8px;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:700;background:${statusBg[c.status]||'#eee'};color:${statusColors[c.status]||'#333'}">${c.status}</span>
+              ${c.stage ? `<span style="font-size:10px;color:#888;margin-left:6px">[${c.stage}]</span>` : ''}
+              <div style="font-size:12px;color:#444;margin-top:3px">${c.detail||''}</div>
+            </div>
+          </div>`).join('')}
+        ${(r.criticalFlags||[]).length ? `
+          <div style="background:#f8d7da;border:1px solid #f5c6cb;border-radius:4px;padding:10px;margin-top:10px">
+            <div style="color:#721c24;font-weight:700;margin-bottom:6px">🚨 Critical Flags</div>
+            ${r.criticalFlags.map(f=>`<div style="font-size:12px;color:#721c24">• ${f}</div>`).join('')}
+          </div>` : ''}
+        ${(r.actionRequired||[]).length ? `
+          <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:4px;padding:10px;margin-top:8px">
+            <div style="color:#856404;font-weight:700;margin-bottom:6px">📋 Actions Required</div>
+            ${r.actionRequired.map((a,i)=>`<div style="font-size:12px;color:#856404">${i+1}. ${a}</div>`).join('')}
+          </div>` : ''}
+        ${r.indiaLawRef ? `<div style="font-size:11px;color:#888;margin-top:8px;padding:6px 10px;background:#f8f9fa;border-radius:3px">📖 ${r.indiaLawRef}</div>` : ''}
+      </div>
+    </div>`;
+  });
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PROC CHECK Report — ${new Date().toLocaleDateString('en-IN')}</title>
+  <style>
+    body{font-family:Arial,sans-serif;font-size:13px;color:#000;background:#fff;padding:20px;max-width:800px;margin:0 auto}
+    h2{color:#2d5a27;margin-bottom:4px}
+    .result-panel{border:1px solid #ccc;border-radius:6px;margin-bottom:20px;page-break-inside:avoid}
+    .result-header{background:#f0f0f0;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #ccc;border-radius:6px 6px 0 0}
+    .result-title{font-weight:700;font-size:14px}
+    .result-checks{padding:12px 16px}
+    .check-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #eee;align-items:flex-start}
+    .check-item:last-child{border-bottom:none}
+    @media print{body{padding:10px} .no-print{display:none!important}}
+  </style>
+</head>
+<body>
+  <h2>🪖 PROC CHECK — Procurement Compliance Report</h2>
+  <p style="color:#666;font-size:12px;margin-bottom:16px">Generated: ${new Date().toLocaleString('en-IN')} &nbsp;|&nbsp; procheck-9ywm.onrender.com &nbsp;|&nbsp; ${analysisResults.length} analysis run(s)</p>
+  <hr style="margin-bottom:20px">
+  ${body}
+  <p style="font-size:11px;color:#999;margin-top:20px;text-align:center">PROC CHECK — AI-powered procurement validator. For official use, verify findings independently.</p>
+</body>
+</html>`;
+
+  // Open in new tab — use data URI to avoid popup blockers on iPhone
+  const blob = new Blob([html], {type: 'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
 }
 
 // ============================================================

@@ -777,7 +777,7 @@
     <div class="logo-badge">PROC</div>
     <div>
       <div class="logo-title">PROC CHECK</div>
-      <div class="logo-sub">Procurement Document Validator · Indian Army / GST</div>
+      <div class="logo-sub">Procurement Document Validator · GST Compliance · India</div>
     </div>
   </div>
   <div class="header-meta">
@@ -918,7 +918,7 @@
         </div>
       </div>
       <div class="info-pill">
-        ℹ️ These rates are cross-checked against vendor invoices during analysis. Last updated: <strong>GST Council 55th Meeting, Dec 2024.</strong>
+        ℹ️ These rates are cross-checked against vendor invoices during analysis. Last updated: <strong>GST 2.0 — 56th GST Council, 22 Sep 2025.</strong> 12% and 28% slabs removed. New: 5% and 18% only.
       </div>
       <div class="lpp-actions">
         <button class="btn btn-primary" onclick="showHsnForm()">✏️ Add Custom HSN</button>
@@ -1181,24 +1181,24 @@ const HSN_DEFAULTS = [
   {hsn:'8482',desc:'Ball bearings and roller bearings',cat:'Vehicle Spares',rate:18,note:'All types of bearings',src:'CGST Sch IV',custom:false},
   {hsn:'8511',desc:'Spark plugs, glow plugs, ignition coils, distributors',cat:'Vehicle Spares',rate:18,note:'Electrical ignition and starting equipment',src:'CGST Sch IV',custom:false},
   {hsn:'8512',desc:'Headlights, indicators, horns — vehicle electrical lighting',cat:'Vehicle Spares',rate:18,note:'',src:'CGST Sch IV',custom:false},
-  {hsn:'8714',desc:'Parts and accessories for motorcycles',cat:'Vehicle Spares',rate:28,note:'Motorcycle spare parts attract 28%',src:'CGST Sch V',custom:false},
-  {hsn:'4011',desc:'New pneumatic rubber tyres — all vehicles',cat:'Tyres and Tubes',rate:28,note:'New tyres for cars, trucks, buses',src:'CGST Sch V',custom:false},
+  {hsn:'8714',desc:'Parts and accessories for motorcycles',cat:'Vehicle Spares',rate:18,note:'Reduced from 28% to 18% w.e.f. 22 Sep 2025 (56th GST Council)',src:'CGST Notif Sep 2025',custom:false},
+  {hsn:'4011',desc:'New pneumatic rubber tyres — all vehicles',cat:'Tyres and Tubes',rate:18,note:'Reduced from 28% to 18% w.e.f. 22 Sep 2025 (56th GST Council)',src:'CGST Notif Sep 2025',custom:false},
   {hsn:'4012',desc:'Retreaded or used pneumatic rubber tyres',cat:'Tyres and Tubes',rate:18,note:'Retreaded tyres 18% only — lower than new',src:'CGST Sch IV',custom:false},
-  {hsn:'4013',desc:'Inner tubes for tyres',cat:'Tyres and Tubes',rate:28,note:'Rubber inner tubes',src:'CGST Sch V',custom:false},
+  {hsn:'4013',desc:'Inner tubes for tyres',cat:'Tyres and Tubes',rate:18,note:'Reduced from 28% to 18% w.e.f. 22 Sep 2025 (56th GST Council)',src:'CGST Notif Sep 2025',custom:false},
   {hsn:'2710',desc:'Engine oil, hydraulic oil, gear oil, diesel, lubricants',cat:'POL / Lubricants',rate:18,note:'Mineral oils and lubricating preparations',src:'CGST Sch IV',custom:false},
   {hsn:'3403',desc:'Lubricating grease, penetrating oils',cat:'POL / Lubricants',rate:18,note:'',src:'CGST Sch IV',custom:false},
-  {hsn:'8507',desc:'Vehicle batteries, UPS batteries — lead acid',cat:'Batteries',rate:28,note:'Lithium-ion cells reduced to 18% from FY24',src:'CGST Sch V',custom:false},
+  {hsn:'8507',desc:'Vehicle batteries, UPS batteries — lead acid and lithium-ion',cat:'Batteries',rate:18,note:'All batteries unified to 18% w.e.f. 22 Sep 2025 (56th GST Council)',src:'CGST Notif Sep 2025',custom:false},
   {hsn:'8506',desc:'Primary cells and dry cell batteries — AA, AAA',cat:'Batteries',rate:18,note:'',src:'CGST Sch IV',custom:false},
   {hsn:'8536',desc:'Electrical switches, MCBs, fuses, relays, sockets',cat:'Electrical',rate:18,note:'',src:'CGST Sch IV',custom:false},
   {hsn:'8544',desc:'Insulated wire, electrical cable, optical fibre',cat:'Electrical',rate:18,note:'Copper wire, armoured cable',src:'CGST Sch IV',custom:false},
-  {hsn:'8539',desc:'LED lights, LED bulbs, LED fixtures',cat:'Electrical',rate:12,note:'Reduced to 12% by Notif 24/2018',src:'CGST Notif 24/2018',custom:false},
+  {hsn:'8539',desc:'LED lights, LED bulbs, LED fixtures',cat:'Electrical',rate:5,note:'Further reduced from 12% to 5% w.e.f. 22 Sep 2025 (56th GST Council)',src:'CGST Notif Sep 2025',custom:false},
   {hsn:'9405',desc:'Lamps, light fittings, searchlights, floodlights',cat:'Electrical',rate:18,note:'Non-LED lighting 18%',src:'CGST Sch IV',custom:false},
   {hsn:'8414',desc:'Ceiling fans, table fans, exhaust fans, blowers, air pumps',cat:'Fans and HVAC',rate:18,note:'All types of fans',src:'CGST Sch IV',custom:false},
-  {hsn:'8415',desc:'Air conditioning machines — split AC, window AC',cat:'Fans and HVAC',rate:28,note:'',src:'CGST Sch V',custom:false},
+  {hsn:'8415',desc:'Air conditioning machines — split AC, window AC, inverter AC',cat:'Fans and HVAC',rate:18,note:'Reduced from 28% to 18% w.e.f. 22 Sep 2025 (56th GST Council)',src:'CGST Notif Sep 2025',custom:false},
   {hsn:'8418',desc:'Refrigerators, deep freezers, water coolers',cat:'Fans and HVAC',rate:18,note:'',src:'CGST Sch IV',custom:false},
-  {hsn:'4820',desc:'Registers, notebooks, diaries, account books',cat:'Stationery',rate:12,note:'',src:'CGST Sch III',custom:false},
-  {hsn:'4802',desc:'A4 paper, printing paper, writing paper — reams',cat:'Stationery',rate:12,note:'Uncoated office paper',src:'CGST Sch III',custom:false},
-  {hsn:'9608',desc:'Ball pens, gel pens, pencils, markers, highlighters',cat:'Stationery',rate:12,note:'',src:'CGST Sch III',custom:false},
+  {hsn:'4820',desc:'Registers, notebooks, diaries, account books',cat:'Stationery',rate:5,note:'Reduced from 12% to 5% w.e.f. 22 Sep 2025. Educational stationery now NIL.',src:'CGST Notif Sep 2025',custom:false},
+  {hsn:'4802',desc:'A4 paper, printing paper, writing paper — reams',cat:'Stationery',rate:5,note:'Reduced from 12% to 5% w.e.f. 22 Sep 2025',src:'CGST Notif Sep 2025',custom:false},
+  {hsn:'9608',desc:'Ball pens, gel pens, pencils, markers, highlighters',cat:'Stationery',rate:5,note:'Reduced from 12% to 5% w.e.f. 22 Sep 2025',src:'CGST Notif Sep 2025',custom:false},
   {hsn:'9612',desc:'Printer ink cartridges, toner cartridges, ribbons',cat:'Stationery',rate:18,note:'',src:'CGST Sch IV',custom:false},
   {hsn:'3926',desc:'Plastic files, folders, document holders',cat:'Stationery',rate:18,note:'',src:'CGST Sch IV',custom:false},
   {hsn:'1001',desc:'Wheat, atta (unbranded)',cat:'Ration / Food',rate:0,note:'Unbranded — nil rated. Branded 5%.',src:'CGST Nil Notif',custom:false},
@@ -1211,7 +1211,7 @@ const HSN_DEFAULTS = [
   {hsn:'2106',desc:'Food preparations — spice mix, masala, packaged food',cat:'Ration / Food',rate:12,note:'Branded packaged food',src:'CGST Sch III',custom:false},
   {hsn:'2202',desc:'Packaged drinking water, mineral water',cat:'Ration / Food',rate:18,note:'<20L bottle 18%; >20L jar 12%',src:'CGST Sch IV',custom:false},
   {hsn:'5208',desc:'Woven cotton fabrics — uniform cloth, shirting',cat:'Clothing / Fabric',rate:5,note:'Fabric up to Rs1000/metre is 5%',src:'CGST Sch II',custom:false},
-  {hsn:'6211',desc:'Track suits, fatigues, combat dress, windcheaters',cat:'Clothing / Fabric',rate:12,note:'Garments above Rs1000 value attract 12%',src:'CGST Sch III',custom:false},
+  {hsn:'6211',desc:'Track suits, fatigues, combat dress, windcheaters',cat:'Clothing / Fabric',rate:5,note:'Reduced from 12% to 5% w.e.f. 22 Sep 2025 (56th GST Council)',src:'CGST Notif Sep 2025',custom:false},
   {hsn:'6403',desc:'Leather boots, uniform shoes, safety footwear',cat:'Clothing / Fabric',rate:18,note:'',src:'CGST Sch IV',custom:false},
   {hsn:'8471',desc:'Computers, laptops, tablets, servers, printers',cat:'IT / Electronics',rate:18,note:'',src:'CGST Sch IV',custom:false},
   {hsn:'8517',desc:'Mobile phones, telephones, walkie-talkies, VHF/UHF sets',cat:'IT / Electronics',rate:18,note:'',src:'CGST Sch IV',custom:false},
@@ -1220,7 +1220,7 @@ const HSN_DEFAULTS = [
   {hsn:'9306',desc:'Bombs, grenades, ammunition, cartridges',cat:'Arms and Ammunition',rate:12,note:'Commercial sale. Military supply may be exempt.',src:'CGST Sch III',custom:false},
   {hsn:'3208',desc:'Paints, varnishes, enamels — solvent based',cat:'Other',rate:18,note:'',src:'CGST Sch IV',custom:false},
   {hsn:'3209',desc:'Water-based paints, emulsion paints',cat:'Other',rate:18,note:'',src:'CGST Sch IV',custom:false},
-  {hsn:'2523',desc:'Portland cement — OPC, PPC, PSC',cat:'Other',rate:28,note:'',src:'CGST Sch V',custom:false},
+  {hsn:'2523',desc:'Portland cement — OPC, PPC, PSC',cat:'Other',rate:18,note:'Reduced from 28% to 18% w.e.f. 22 Sep 2025 (56th GST Council)',src:'CGST Notif Sep 2025',custom:false},
   {hsn:'7308',desc:'Structural steel — MS channels, angles, beams, plates',cat:'Other',rate:18,note:'',src:'CGST Sch IV',custom:false},
   {hsn:'9987',desc:'Maintenance and repair services (SAC)',cat:'Other',rate:18,note:'Vehicle repair, equipment maintenance service',src:'SAC 9987',custom:false},
   {hsn:'9965',desc:'Goods transport services — GTA (SAC)',cat:'Other',rate:5,note:'No ITC option; or 12% with ITC',src:'SAC 9965',custom:false},
@@ -1661,7 +1661,7 @@ async function runChainCheck() {
       ? `LPP REFERENCE DATABASE:\n` + lppData.slice(0,25).map(i=>`  ${i.desc} | ${i.partNo||'-'} | ₹${i.lpp} per ${i.unit}`).join('\n')
       : 'No LPP database loaded.';
 
-    const prompt = `You are a senior Indian Army procurement compliance officer and GST expert. You are reviewing ${chainAllFiles.length} procurement document image(s).
+    const prompt = `You are a senior procurement compliance officer and GST expert with deep knowledge of Indian GST law, CGST Act 2017, and procurement best practices across government and corporate sectors. You are reviewing ${chainAllFiles.length} procurement document image(s).
 
 CRITICAL RULES — MUST FOLLOW:
 1. ONLY analyse documents actually provided in these images. NEVER assume, invent, or reference any document not visible in the images.
@@ -1776,23 +1776,26 @@ function updateChainStatus() {}
 function extractJSON(raw) {
   if (!raw) throw new Error('Empty response');
 
-  // 1. Strip markdown code fences
-  let s = raw.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+  // 1. Strip ALL markdown fences including ```json, ```, ~~~
+  let s = raw
+    .replace(/```json\s*/gi, '')
+    .replace(/```\s*/g, '')
+    .replace(/~~~\s*/g, '')
+    .trim();
 
-  // 2. Try direct parse first
+  // 2. Try direct parse
   try { return JSON.parse(s); } catch(_) {}
 
-  // 3. Find the first { and last } — extract the outermost JSON object
+  // 3. Find outermost { } block
   const first = s.indexOf('{');
   const last = s.lastIndexOf('}');
   if (first !== -1 && last !== -1 && last > first) {
     try { return JSON.parse(s.slice(first, last + 1)); } catch(_) {}
   }
 
-  // 4. If truncated (missing closing brace), try to auto-close
+  // 4. Auto-close truncated JSON
   if (first !== -1) {
     let fragment = s.slice(first);
-    // Count open braces/brackets to close
     let braces = 0, brackets = 0, inStr = false, esc = false;
     for (const ch of fragment) {
       if (esc) { esc = false; continue; }
@@ -1804,10 +1807,46 @@ function extractJSON(raw) {
       if (ch === '[') brackets++;
       if (ch === ']') brackets--;
     }
-    // Close any open structures
     if (brackets > 0) fragment += ']'.repeat(brackets);
     if (braces > 0) fragment += '}'.repeat(braces);
     try { return JSON.parse(fragment); } catch(_) {}
+  }
+
+  // 5. Last resort — try to extract key fields from text and build result
+  // This handles cases where AI returns valid analysis but not clean JSON
+  const summaryMatch = s.match(/"summary"\s*:\s*"([^"]+)"/);
+  const statusMatch = s.match(/"overallStatus"\s*:\s*"(PASS|WARN|FAIL)"/);
+  const scoreMatch = s.match(/"score"\s*:\s*(\d+)/);
+  const stagesMatch = s.match(/"stagesAnalysed"\s*:\s*\[([^\]]+)\]/);
+
+  if (summaryMatch || statusMatch) {
+    // Extract checks array if possible
+    let checks = [];
+    const checkMatches = [...s.matchAll(/"title"\s*:\s*"([^"]+)"[^}]+"status"\s*:\s*"([^"]+)"[^}]+"detail"\s*:\s*"([^"]+)"/g)];
+    checkMatches.forEach(m => {
+      checks.push({ title: m[1], status: m[2], detail: m[3], category: 'Analysis' });
+    });
+
+    // Extract action required
+    let actions = [];
+    const actionMatches = [...s.matchAll(/"actionRequired"\s*:\s*\[([^\]]+)\]/g)];
+    if (actionMatches.length) {
+      const actionStr = actionMatches[0][1];
+      actions = [...actionStr.matchAll(/"([^"]+)"/g)].map(m => m[1]);
+    }
+
+    return {
+      overallStatus: statusMatch ? statusMatch[1] : 'WARN',
+      score: scoreMatch ? parseInt(scoreMatch[1]) : 60,
+      summary: summaryMatch ? summaryMatch[1] : 'Analysis completed — partial results extracted.',
+      stagesAnalysed: stagesMatch ? [...stagesMatch[1].matchAll(/"([^"]+)"/g)].map(m=>m[1]) : [],
+      checks: checks.length > 0 ? checks : [{
+        category: 'Analysis', title: 'Full Analysis', status: 'INFO',
+        detail: s.substring(0, 500)
+      }],
+      actionRequired: actions.length > 0 ? actions : ['Review findings above'],
+      indiaLawRef: 'GST Act 2017, CGST Rules 2017'
+    };
   }
 
   throw new Error('Could not extract JSON from response');
@@ -1828,7 +1867,7 @@ function buildSingleCheckPrompt(docType, numImages, category, vehicle, notes) {
     techspec: `Check: specification completeness, OEM part numbers, compatibility with vehicle/equipment mentioned, brand restrictions (proprietary vs generic), test certificates required.`
   };
 
-  return `You are an expert Indian Army procurement compliance officer and Indian GST law specialist. CRITICAL INSTRUCTION: Output ONLY a raw JSON object. No preamble, no explanation, no markdown, no code fences. Start your response with { and end with }.
+  return `You are an expert procurement compliance officer and Indian GST law specialist with expertise across government, defence, and corporate procurement. CRITICAL INSTRUCTION: Output ONLY a raw JSON object. No preamble, no explanation, no markdown, no code fences. Start your response with { and end with }.
 
 Document type: ${docType.toUpperCase()}
 Number of images: ${numImages}
@@ -1854,7 +1893,7 @@ function buildChainCheckPrompt(stageMap, notes, lpp) {
   const stageList = [...new Set(stageMap)].join(', ');
   const lppContext = lpp.length > 0 ? `LPP Database: ${lpp.slice(0,20).map(i=>`${i.desc}: ₹${i.lpp}`).join('; ')}` : 'No LPP data.';
 
-  return `You are an expert Indian Army procurement compliance officer. CRITICAL INSTRUCTION: Output ONLY a raw JSON object. No preamble, no explanation, no markdown, no code fences. Start your response with { and end with }.
+  return `You are an expert procurement compliance officer and Indian GST law specialist. CRITICAL INSTRUCTION: Output ONLY a raw JSON object. No preamble, no explanation, no markdown, no code fences. Start your response with { and end with }.
 
 PROCUREMENT CHAIN IMAGES PROVIDED: ${stageList}
 Notes: ${notes || 'None'}
@@ -2024,18 +2063,27 @@ function renderSingleResult(ar, idx) {
 }
 
 function buildFallbackResult(type, rawText) {
+  // Try one more time to extract JSON before giving up
+  try { return extractJSON(rawText); } catch(_) {}
+
+  // Clean up raw text — remove JSON artifacts for display
+  const clean = rawText
+    .replace(/```json/gi, '').replace(/```/g, '')
+    .replace(/[\{\}"]/g, '').replace(/\\n/g, ' ')
+    .trim().substring(0, 600);
+
   return {
     docType: type,
     overallStatus: 'WARN',
     score: 50,
-    summary: 'Analysis completed. Review detailed findings below.',
+    summary: 'Analysis completed. Detailed findings extracted below.',
     checks: [{
       category: 'Analysis',
       title: 'Document Analysis',
       status: 'INFO',
-      detail: rawText.substring(0, 800)
+      detail: clean || 'Analysis ran but results could not be fully parsed. Please try again.'
     }],
-    actionRequired: ['Review the analysis output above for detailed findings'],
+    actionRequired: ['Try running the analysis again for structured results'],
     indiaLawRef: 'GST Act 2017, CGST Rules 2017'
   };
 }
